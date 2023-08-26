@@ -2,11 +2,15 @@
 /**
 *  @filename    AutoMule.js
 *  @author      kolton, theBGuy
+*  @contributor Butterz
 *  @desc        Main driver for Mule system
 *               For Mules setup @see MuleConfig.js
 *               For TorchAnniMules setup @see TorchAnniMules.js
-*
+* 
 */
+
+// system features
+include("systems/features/Settings.js");
 
 const AutoMule = {
   /** @type {Object.<string, muleObj>} */
@@ -74,14 +78,14 @@ const AutoMule = {
       if (info.muleInfo.hasOwnProperty("usedStashTrigger") && info.muleInfo.hasOwnProperty("usedInventoryTrigger")
         && Storage.Inventory.UsedSpacePercent() >= info.muleInfo.usedInventoryTrigger
         && Storage.Stash.UsedSpacePercent() >= info.muleInfo.usedStashTrigger && items.length > 0) {
-        D2Bot.printToConsole("MuleCheck triggered!", sdk.colors.D2Bot.DarkGold);
+        if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("MuleCheck triggered!", sdk.colors.D2Bot.DarkGold);
 
         return true;
       }
 
       for (let i = 0; i < items.length; i += 1) {
         if (this.matchItem(items[i], Config.AutoMule.Trigger)) {
-          D2Bot.printToConsole("MuleCheck triggered!", sdk.colors.D2Bot.DarkGold);
+          if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("MuleCheck triggered!", sdk.colors.D2Bot.DarkGold);
           return true;
         }
       }
@@ -126,14 +130,15 @@ const AutoMule = {
     }
 
     if (muleObj.continuousMule) {
-      D2Bot.printToConsole("Starting mule.", sdk.colors.D2Bot.DarkGold);
+      if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Starting mule.", sdk.colors.D2Bot.DarkGold);
       D2Bot.start(muleObj.muleProfile);
     } else {
-      D2Bot.printToConsole(
-        "Starting " + (this.torchAnniCheck === 2 ? "anni " : this.torchAnniCheck === 1 ? "torch " : "")
-        + "mule profile: " + muleObj.muleProfile,
-        sdk.colors.D2Bot.DarkGold
-      );
+      if (!Features.Console.HideMuleMsg) {
+        D2Bot.printToConsole(
+          "Starting " + (this.torchAnniCheck === 2 ? "anni " : this.torchAnniCheck === 1 ? "torch " : "") +
+          "mule profile: " + muleObj.muleProfile, sdk.colors.D2Bot.DarkGold
+        );
+      }
     }
 
     const mulePayload = JSON.stringify({ profile: me.profile, mode: this.torchAnniCheck || 0 });
@@ -172,7 +177,7 @@ const AutoMule = {
         break;
       case "busy":
       case "begin":
-        D2Bot.printToConsole("Mule profile is busy.", sdk.colors.D2Bot.Red);
+        if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Mule profile is busy.", sdk.colors.D2Bot.Red);
 
         break MainLoop;
       case "ready":
@@ -369,7 +374,7 @@ const AutoMule = {
       while (true) {
         if (muleObj.continuousMule) {
           if (this.isFinished()) {
-            D2Bot.printToConsole("Done muling.", sdk.colors.D2Bot.DarkGold);
+            if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Done muling.", sdk.colors.D2Bot.DarkGold);
             status = "quit";
           } else {
             delay(5000);
@@ -476,9 +481,11 @@ const AutoMule = {
     if (items.length === 0) return false;
     items.forEach(item => AutoMule.gids.add(item.gid));
 
-    D2Bot.printToConsole("AutoMule: Transfering " + items.length + " items.", sdk.colors.D2Bot.DarkGold);
-    D2Bot.printToConsole("AutoMule: " + JSON.stringify(items.map(i => i.prettyPrint)), sdk.colors.D2Bot.DarkGold);
-    
+    if (!Features.Console.HideMuleMsg) {
+      D2Bot.printToConsole("AutoMule: Transfering " + items.length + " items.", sdk.colors.D2Bot.DarkGold);
+      D2Bot.printToConsole("AutoMule: " + JSON.stringify(items.map(i => i.prettyPrint)), sdk.colors.D2Bot.DarkGold);
+    }
+
     items.forEach(item => item.drop());
     delay(1000);
     me.cancel();
@@ -645,14 +652,13 @@ const AutoMule = {
       });
       if (!item) return false;
 
-      D2Bot.printToConsole("AutoMule: Transfering Anni.", sdk.colors.D2Bot.DarkGold);
+      if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("AutoMule: Transfering Anni.", sdk.colors.D2Bot.DarkGold);
     } else {
       item = items.find(function (item) {
         return item.isGheeds;
       });
       if (!item) return false;
-
-      D2Bot.printToConsole("AutoMule: Transfering Gheeds.", sdk.colors.D2Bot.DarkGold);
+      if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("AutoMule: Transfering Gheeds.", sdk.colors.D2Bot.DarkGold);
     }
 
     item.drop();

@@ -34,10 +34,16 @@
 
       // Mule items that have been stashed at some point but are no longer in pickit.
       muleOrphans: true,
+
       // Continuous Mule settings
       continuousMule:	false, // Mule stays in game for continuous muling. muleProfile must be dedicated and started manually.
+
+      // Flexible Mule Response
       skipMuleResponse: false, // Skip mule response check and attempt to join mule game. Useful if mule is shared and/or ran on different system.
-      onlyLogWhenFull: false // Only log character when full, solves an issue with droppers attempting to use characters who are already in game
+
+      // Log Settings
+      Logging: false, // Prepares account info for MuleLogger for copying/pasting
+      onlyLogWhenFull: false // Only log character when full, solves an issue with droppers attempting to use characters who are already in game.
     },
   };
 })(module);

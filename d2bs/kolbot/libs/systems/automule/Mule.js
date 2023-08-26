@@ -7,6 +7,54 @@
 *  @typedef {import("./libs/systems/mulelogger/MuleLogger")}
 */
 
+// system features
+include("systems/features/Settings.js");
+
+/**
+*  @author   Butterz
+*  @desc     AutoMule Account Logging (MuleDataLog)
+*/
+const MuleDataLog = {
+  generateMuleAccountLog: function () {
+    const defaultPath = "libs/systems/automule";
+    const basePath = defaultPath + "/logs";
+    const realmPath = basePath + "/" + me.realm;
+    const ladderType = me.ladder > 0 ? "Ladder" : "Non-Ladder";
+    const ladderTypePath = realmPath + "/" + ladderType;
+    const autoMuleAccountLogFilePath = ladderTypePath + "/AutoMule_Account_Log_Data.txt";
+
+    // Data-file already exists
+    if (FileTools.exists(autoMuleAccountLogFilePath)) {
+      return;
+    }
+
+    // Create necessary directories if they don't exist
+    if (!FileTools.exists(basePath)) {
+      dopen(defaultPath).create("logs");
+    }
+
+    if (!FileTools.exists(realmPath)) {
+      dopen(basePath).create(me.realm);
+    }
+
+    if (!FileTools.exists(ladderTypePath)) {
+      dopen(realmPath).create(ladderType);
+    }
+  },
+  
+  printMuleDataLogPathToConsole: function () {
+    const ladderType = me.ladder > 0 ? "Ladder" : "Non-Ladder";
+    const autoMuleAccountLogFilePath = "libs/systems/automule/logs/" + me.realm + "/" + ladderType + "/AutoMule_Account_Log_Data.txt";
+    D2Bot.printToConsole("AutoMule Account Logging Path: " + autoMuleAccountLogFilePath, sdk.colors.D2Bot.Black);
+  },
+
+  appendMuleTextData: function () {
+    const ladderType = me.ladder > 0 ? "Ladder" : "Non-Ladder";
+    const autoMuleAccountLogFilePath = "libs/systems/automule/logs/" + me.realm + "/" + ladderType + "/AutoMule_Account_Log_Data.txt";
+    FileTools.appendText(autoMuleAccountLogFilePath, '"' + me.account + "/" + muleObj.accountPassword + "/" + me.realm.toLowerCase() + '"' + ': ["all"]' + "," + '\n');
+  },
+};
+
 /**
  * Mule Data object manipulates external mule datafile
  */
@@ -108,7 +156,7 @@ const Mule = {
 
     if (Mule.status !== "begin") {
       if (Mule.foreverAlone() && !getUnits(sdk.unittype.Item).filter(i => i.onGroundOrDropping).length) {
-        D2Bot.printToConsole("Nobody joined - stopping.", sdk.colors.D2Bot.Red);
+        if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Nobody joined - stopping.", sdk.colors.D2Bot.Red);
         D2Bot.stop(me.profile, true);
       } else {
         console.debug("No response from master, but items on ground. Setting status to begin.");
@@ -132,7 +180,7 @@ const Mule = {
     }
 
     MuleData.write(obj);
-    D2Bot.printToConsole("Done muling.", sdk.colors.D2Bot.DarkGold);
+    if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Done muling.", sdk.colors.D2Bot.DarkGold);
     console.log("Done muling");
     sendCopyData(null, Mule.master, 10, JSON.stringify({ status: "quit" }));
     D2Bot.stop(me.profile, true);
@@ -154,7 +202,8 @@ const Mule = {
       MuleData.write(obj);
     }
     let nextMule = MuleData.nextChar();
-    D2Bot.printToConsole("Mule full, getting next character (" + nextMule + " )", sdk.colors.D2Bot.DarkGold);
+
+    if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Mule full, getting next character (" + nextMule + " )", sdk.colors.D2Bot.DarkGold);
 
     if (Mule.minGameTime && getTickCount() - Mule.startTick < Mule.minGameTime * 1000) {
       while (getTickCount() - Mule.startTick < Mule.minGameTime * 1000) {
@@ -164,6 +213,16 @@ const Mule = {
         );
         delay(1000);
       }
+    }
+
+    if (Mule.Obj.Logging) {
+      MuleDataLog.generateMuleAccountLog();
+
+      if (!Features.Console.HideMuleLog) {
+        MuleDataLog.printMuleDataLogPathToConsole();
+      }
+
+      MuleDataLog.appendMuleTextData();
     }
 
     Mule.quit();
@@ -183,6 +242,7 @@ const Mule = {
 
     return true;
   },
+
   foreverAlone: function () {
     let party = getParty();
 
@@ -300,13 +360,13 @@ const Mule = {
             let msg = item.classid === sdk.items.LargeCharm
               ? "Mule already has a Torch."
               : "Mule already has a Anni.";
-            D2Bot.printToConsole(msg, sdk.colors.D2Bot.DarkGold);
+            if (!Features.Console.HideMuleMsg) D2Bot.printToConsole(msg, sdk.colors.D2Bot.DarkGold);
             rval = "next";
           }
 
           // Gheed's Fortune handling
           if (item.isGheeds && !Pickit.canPick(item)) {
-            D2Bot.printToConsole("Mule already has Gheed's.", sdk.colors.D2Bot.DarkGold);
+            if (!Features.Console.HideMuleMsg) D2Bot.printToConsole("Mule already has Gheed's.", sdk.colors.D2Bot.DarkGold);
             rval = "next";
           }
 
